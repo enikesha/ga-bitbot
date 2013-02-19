@@ -54,7 +54,6 @@ class trade_engine:
         self.flash_crash_protection_delay = 180 #max_hold in minutes
         self.stop_age = 10000       #stop age - dump after n periods
 
-        self.atr_depth = 60 * 1         #period depth of the averae true range, used to split input data into quartiles
         self.macd_buy_trip = -0.66  #macd buy indicator
         self.rsi_enable = 0     #enable/disable the relative strength indicator
         self.rsi_length = 1     #RSI length
@@ -109,8 +108,6 @@ class trade_engine:
         self.buy_delay_inital = self.buy_delay  #delay buy counter
         self.macd_pct = 0
         self.macd_abs = 0
-        self.avg_wl = 0
-        self.avg_ws = 0
         self.ema_short = 0
         self.ema_long = 0
         self.rsi = 50               #RSI indicator value
@@ -163,7 +160,7 @@ class trade_engine:
         self.load_input_data()
         cm = None
         if self.cache_input == True:
-            cache_label = self.input_file_name + '::bct_slope_classify_market::'+str(self.max_length)+'::atr_depth::'+str(self.atr_depth)
+            cache_label = self.input_file_name + '::bct_slope_classify_market::'+str(self.max_length)
             cm = self.cache.get(cache_label)
         if cm == None:
             print "bct_alt: classifying market data..."
@@ -224,7 +221,6 @@ class trade_engine:
             else:
                 slope.append([t,(p - ema_history[i - self.wll])/p])
 
-
         self.market_class = slope
 
         #pad the end of the data to support future order testing
@@ -248,8 +244,6 @@ class trade_engine:
                 self.market_class[i][1] = 0.75
             if p > quartiles[2]:
                 self.market_class[i][1] = 1.0
-            if i < self.atr_depth + 1:
-                self.market_class[i][1] = 0.0   #ignore early (uncalculated) data
         self.classified_market_data = True
         self.current_quartile = int(self.market_class[len(self.market_class)-1][1] * 4) #return the current quartile (1-4)
         return self.current_quartile
@@ -574,16 +568,13 @@ class trade_engine:
                 for i in xrange(self.wll):
                     if i < self.wls:
                         s += self.history[i]
-                        l += self.history[i]
-                self.avg_ws = s / self.wls
-                self.avg_wl = l / self.wll
-                self.ema_long = self.avg_wl
-                self.ema_short = self.avg_ws
+                    l += self.history[i]
+                self.ema_long = l / self.wll
+                self.ema_short = s / self.wls
             else:
                 #calculate the long and short ema
                 self.ema_long = (self.history[0] - self.ema_long) * ema_long_mult + self.ema_long
                 self.ema_short = (self.history[0] - self.ema_short) * ema_short_mult + self.ema_short
-
 
             #calculate the absolute and pct differences between the
             #long and short emas
@@ -873,27 +864,40 @@ class trade_engine:
 
 def test():
     te = trade_engine()
-    #set the trade engine class vars
+    te.cache_input = False  #dont use cached data for reporting
 
+    # Load gene_def config
+    te.input_file_name = "./datafeed/bcfeed_mtgoxUSD_1min.csv"
+    te.nlsf = 7.0
+    te.stbf = 1.025
+    te.commision = 0.006
+    te.max_length = 75000
+    te.enable_flash_crash_protection = 1
+    te.flash_crash_protection_delay = 240
+
+    quartile = te.initialize()
+    print 'quartile', quartile
+    te.test_quartile(quartile)
+
+    # Set test gene
     te.shares = 0.1
     te.wll = 242
     te.wls = 1
     te.buy_wait = 0
+    te.buy_wait_after_stop_loss = 0
     te.markup = 0.01
     te.stop_loss = 0.128
     te.stop_age = 2976
     te.macd_buy_trip = -0.02
-    te.min_i_neg = 2
-    te.min_i_pos = 0
-    te.buy_wait_after_stop_loss = 0
+    te.rsi_enable = 1     #enable/disable the relative strength indicator
+    te.rsi_length = 1     #RSI length
+    te.rsi_gate = 50
+    
+    te.run()
 
-    for row in d[1:]:
-        r = row.split(',')[1] #last
-        t = row.split(',')[0] #time
-        te.input(float(t),float(r))
-
-    return te
-
+    print "Score:",te.score()
+    print "Closing Balance:",te.balance
+    print "Transaction Count: ",len(te.positions)
 
 if __name__ == "__main__":
     import pdb
@@ -910,21 +914,18 @@ if __name__ == "__main__":
     d = f.readlines()
     f.close()
 
+    try:
+        import cProfile as profile
+    except:
+        print "cProfile not available, trying profile"
+        import profile
+    import pstats
 
-    import hotshot,hotshot.stats
-    prof = hotshot.Profile("bct.prof")
-
-    te = prof.runcall(test)
-    prof.close()
-    stats = hotshot.stats.load("bct.prof")
+    profile.run("test()", "bct_active.prof")
+    stats = pstats.Stats("bct_active.prof")
     stats.strip_dirs()
     stats.sort_stats('time','calls')
     stats.print_stats(20)
-
-
-    print "Score:",te.score()
-    print "Closing Balance:",te.balance
-    print "Transaction Count: ",len(te.positions)
 
     #Commented out the follwing reports -- they generate very large files and in the case of this test script of limited use.
     #print "Generating reports..."

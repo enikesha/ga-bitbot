@@ -12,7 +12,6 @@
 			"nlsf": 7.0,
 			"stbf": 1.025,
 			"commision": 0.006,
-			"atr_depth": 15,
 			"max_length" : 75000,
 			"enable_flash_crash_protection" : 1,
 			"flash_crash_protection_delay" : 240
@@ -55,7 +54,7 @@
 			["stop_loss",8,4,0.03],
 			["stop_age",8,0,5000,2.0],
 			["macd_buy_trip",10,2,2.0,-2.0],
-			["rsi_enable",1,0,1],
+			["rsi_enable",1,0,0],
 			["rsi_length",7,0,3],
 			["rsi_gate",6,0,36]
 		]
