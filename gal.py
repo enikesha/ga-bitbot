@@ -55,6 +55,7 @@ print "-"*80
 run_client = 1
 run_server = 1
 mode = ""
+use = "pypy"
 if len(sys.argv) >= 2:
     if sys.argv[1] == 'all':
         mode = 'all'
@@ -76,10 +77,14 @@ if len(sys.argv) >= 2:
         run_client = 0
         run_server = 1
         print "gal: launching server components only"
+    if len(sys.argv)>=3 and sys.argv[2]=='python':
+        use = "python"
 else:
     mode = 'all'
     print "gal: launching all components"
     sleep(3)
+
+print "Using", use
 
 #the variable values below are superceded by the configuration loaded from the
 #configuration file global_config.json
@@ -145,45 +150,45 @@ else:
 # to make sure any new gene_def.json configs get loaded into the db.
 #
 
-all_monitored_launch = ['pypy gts.py all n run_once pid ',\
-'pypy gts.py 3 n run_once get_config pid ',\
-'pypy gts.py 3 y run_once get_config pid ',\
-'pypy gts.py 4 n run_once get_config pid ',\
-'pypy gts.py 4 y run_once get_config pid ',\
-'pypy gts.py all y run_once get_config score_only pid ',\
-'pypy gts.py all y run_once get_config pid ']
+all_monitored_launch = [use + ' gts.py all n run_once pid ',\
+use + ' gts.py 3 n run_once get_config pid ',\
+use + ' gts.py 3 y run_once get_config pid ',\
+use + ' gts.py 4 n run_once get_config pid ',\
+use + ' gts.py 4 y run_once get_config pid ',\
+use + ' gts.py all y run_once get_config score_only pid ',\
+use + ' gts.py all y run_once get_config pid ']
 
 
-server_monitored_launch = ['pypy gts.py all y run_once pid ',\
-'pypy gts.py 1 y run_once get_config score_only pid ',\
-'pypy gts.py 2 y run_once get_config score_only pid ',\
-'pypy gts.py 3 y run_once get_config score_only pid ',\
-'pypy gts.py 3 y run_once get_config score_only pid ',\
-'pypy gts.py 4 y run_once get_config score_only pid ',\
-'pypy gts.py 4 y run_once get_config score_only pid ']
+server_monitored_launch = [use + ' gts.py all y run_once pid ',\
+use + ' gts.py 1 y run_once get_config score_only pid ',\
+use + ' gts.py 2 y run_once get_config score_only pid ',\
+use + ' gts.py 3 y run_once get_config score_only pid ',\
+use + ' gts.py 3 y run_once get_config score_only pid ',\
+use + ' gts.py 4 y run_once get_config score_only pid ',\
+use + ' gts.py 4 y run_once get_config score_only pid ']
 
 
-client_monitored_launch = ['pypy gts.py all n run_once pid ',\
-'pypy gts.py 1 n run_once get_config pid ',\
-'pypy gts.py 2 n run_once get_config pid ',\
-'pypy gts.py 3 n run_once get_config pid ',\
-'pypy gts.py 3 y run_once get_config pid ',\
-'pypy gts.py 4 n run_once get_config pid ',\
-'pypy gts.py 4 y run_once get_config pid ',\
-'pypy gts.py all y run_once get_config pid ']
+client_monitored_launch = [use + ' gts.py all n run_once pid ',\
+use + ' gts.py 1 n run_once get_config pid ',\
+use + ' gts.py 2 n run_once get_config pid ',\
+use + ' gts.py 3 n run_once get_config pid ',\
+use + ' gts.py 3 y run_once get_config pid ',\
+use + ' gts.py 4 n run_once get_config pid ',\
+use + ' gts.py 4 y run_once get_config pid ',\
+use + ' gts.py all y run_once get_config pid ']
 
-xlclient_monitored_launch = ['pypy gts.py all n run_once pid ',\
-'pypy gts.py 1 n run_once get_config pid ',\
-'pypy gts.py 2 n run_once get_config pid ',\
-'pypy gts.py 3 n run_once get_config pid ',\
-'pypy gts.py 3 n run_once get_config pid ',\
-'pypy gts.py 4 n run_once get_config pid ',\
-'pypy gts.py 4 n run_once get_config pid ',\
-'pypy gts.py 3 y run_once get_config pid ',\
-'pypy gts.py 3 y run_once get_config pid ',\
-'pypy gts.py 4 y run_once get_config pid ',\
-'pypy gts.py 4 y run_once get_config pid ',\
-'pypy gts.py all y run_once get_config pid ']
+xlclient_monitored_launch = [use + ' gts.py all n run_once pid ',\
+use + ' gts.py 1 n run_once get_config pid ',\
+use + ' gts.py 2 n run_once get_config pid ',\
+use + ' gts.py 3 n run_once get_config pid ',\
+use + ' gts.py 3 n run_once get_config pid ',\
+use + ' gts.py 4 n run_once get_config pid ',\
+use + ' gts.py 4 n run_once get_config pid ',\
+use + ' gts.py 3 y run_once get_config pid ',\
+use + ' gts.py 3 y run_once get_config pid ',\
+use + ' gts.py 4 y run_once get_config pid ',\
+use + ' gts.py 4 y run_once get_config pid ',\
+use + ' gts.py all y run_once get_config pid ']
 
 
 
@@ -198,7 +203,7 @@ if mode == 'xlclient':
 
 
 
-unmonitored_launch = ['pypy wc_server.py','pypy report_gen.py']
+unmonitored_launch = [use + ' wc_server.py',use + ' report_gen.py']
 
 monitor = {}    #variables to track monitored/unmonitored processes
 no_monitor = []
@@ -248,7 +253,7 @@ no_monitor.append(p)
 
 if run_server:
     print "gal: Launching the xmlrpc server..."
-    Popen(shlex.split('pypy gene_server.py'),stdin=fnull, stdout=fnull, stderr=GENE_SERVER_STDERR_FILE)
+    Popen(shlex.split('python gene_server.py'),stdin=fnull, stdout=fnull, stderr=GENE_SERVER_STDERR_FILE)
     sleep(1) #give the server time to start
 
 
@@ -307,7 +312,7 @@ while 1:
     if run_server:
         count += 1
         #periodicaly tell the server to save the gene db
-        if count == 50:
+        if count == 5:
             count = 0
             server.save()
         if run_client == 0:
