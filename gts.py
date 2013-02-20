@@ -229,11 +229,8 @@ if __name__ == "__main__":
     if gd.has_key('fitness_script'):
         #check for an updated signed package on the gene_server
         #pypy probably wont have pycrypto installed - fall back to python in a subprocess to sync
-        #fitness module names in the gene_def exclude the .py file extention 
-        #but signed packages use the extention. check for extention, if none exists then add .py
-        print "gts: synchronizing signed code"        
-        if len(gd['fitness_script'].split('.')) == 1:
-            sync_filename = gd['fitness_script'] + '.py'
+        print "gts: synchronizing signed code"
+        sync_filename = gd['fitness_script'] + '.py'
         subprocess.call(('python','cpsu.py','get',sync_filename,trusted_keys_path))
 
         print "gts: loading the fitness module",gd['fitness_script']
@@ -347,6 +344,7 @@ if __name__ == "__main__":
             server.pid_msg(pid,json.dumps(pmd))
 
         if g.local_optima_reached:
+            print "gts: local_optima_reached"
             test_count = 0
 
             #initialize fitness function (load updated data)
