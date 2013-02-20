@@ -33,6 +33,7 @@ __server__ = gene_server_config.__server__
 __port__ = gene_server_config.__port__
 __path__ = "/gene"
 
+import atexit
 import sys
 import time
 import json
@@ -447,6 +448,7 @@ def set_default_gene_def_hash(gd_hash):
 
 #system services
 def shutdown():
+    print "gene_server: shutting down"
     global quit
     quit = 1
     save_db()
@@ -482,6 +484,7 @@ def save_db():
     global g_save_counter
     global g_gene_library
     global g_signed_package_library
+    print "gene_server: saving db"
 
     g_save_counter += 1
     if g_save_counter == AUTO_BACKUP_AFTER_N_SAVES:
@@ -647,6 +650,8 @@ server.register_function(put_gene,'mc_put')
 server.register_introspection_functions()
 
 if __name__ == "__main__":
+    atexit.register(shutdown)
+
     print "gene_server: running on port %s"%__port__
     while not quit:
         server.handle_request()
