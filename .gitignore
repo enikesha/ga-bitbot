@@ -9,3 +9,5 @@ report/gene_server_error_log.txt
 report/gts_error_log.txt
 report/book.html
 report/bookie_records.pkl
+report/*.html
+*.prof
